@@ -118,7 +118,7 @@
         <div class="bottom-4 mt-8 flex justify-center">
           <p class="text-sm group cursor-pointer">
             <span class="group-hover:hidden">Made with ❤️ by Vamsi Batchu</span>
-            <span class="hidden group-hover:inline">Thanks for visiting! 👋</span>
+            <span class="hidden group-hover:inline">Thanks for visiting Status Lab! 👋</span>
           </p>
         </div>
 
