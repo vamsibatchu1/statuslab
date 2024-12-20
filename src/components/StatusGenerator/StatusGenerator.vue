@@ -52,6 +52,19 @@
           >
             {{ feeling }}
           </SelectionChip>
+          <!-- Sarcasm Checkbox -->
+          <div class="mt-4 flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="sarcasmCheck"
+              v-model="isSarcastic"
+              class="h-4 w-4 text-black rounded border-gray-300 focus:ring-black"
+            />
+            <label for="sarcasmCheck" class="text-sm text-gray-700 flex items-center">
+              Make it sarcastic
+              <span class="ml-2 text-gray-500 text-xs">(Warning: Extra snark incoming)</span>
+            </label>
+          </div>
         </SelectionGroup>
 
         <!-- Meetings Section -->
@@ -204,8 +217,9 @@ export default {
   setup() {
     const isLoading = ref(false)
     const error = ref(null)
+    const isSarcastic = ref(false)
 
-    const generateAIStatus = async (feeling, meeting, theme) => {
+    const generateAIStatus = async (feeling, meeting, theme, sarcastic) => {
       try {
         const response = await axios.post(
           'https://api.openai.com/v1/chat/completions',
@@ -214,12 +228,13 @@ export default {
             messages: [
               {
                 role: 'system',
-                content:
-                  "You are a creative status message generator specialized in creating themed statuses for Slack. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
+                content: sarcastic
+                  ? "You are a witty and sarcastic status message generator specializing in creating themed statuses for Slack. Your responses should be clever, ironic, and subtly sarcastic while remaining workplace-appropriate. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
+                  : "You are a creative status message generator specialized in creating themed statuses for Slack. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
               },
               {
                 role: 'user',
-                content: `Create 10 unique status messages with:
+                content: `Create 10 unique ${sarcastic ? 'sarcastic ' : ''}status messages with:
                          Feeling: ${feeling}
                          Meeting Type: ${meeting}
                          Theme Style: ${theme}
@@ -228,7 +243,8 @@ export default {
                          1. Reference the theme in a clever way
                          2. Indicate the meeting type
                          3. Reflect the current feeling
-                         4. Be appropriate for a professional setting
+                         4. ${sarcastic ? 'Include subtle sarcasm and wit' : 'Be engaging and creative'}
+                         5. Be appropriate for a professional setting
                          
                          Important: Return ONLY an array of 10 strings in this exact format:
                          [
@@ -238,7 +254,7 @@ export default {
                          ]`
               }
             ],
-            temperature: 0.7,
+            temperature: sarcastic ? 0.8 : 0.7,
             max_tokens: 1000
           },
           {
@@ -251,27 +267,21 @@ export default {
 
         const content = response.data.choices[0].message.content
 
-        // Handle different possible response formats
         try {
-          // First try: Direct JSON parse if the response is already in correct format
           return JSON.parse(content)
         } catch (parseError) {
-          // Second try: If it's a string with line breaks, split and clean
           if (typeof content === 'string') {
-            // Remove any numbering (like "1.", "2.", etc)
             const lines = content
               .split('\n')
               .map((line) => line.trim())
               .filter((line) => line.length > 0)
               .map((line) => line.replace(/^\d+[\)\.]\s*/, ''))
-              .map((line) => line.replace(/^["']|["']$/g, '')) // Remove quotes if present
-              .filter((line) => line !== '[' && line !== ']') // Remove array brackets if present
-              .slice(0, 10) // Ensure we only get 10 items
+              .map((line) => line.replace(/^["']|["']$/g, ''))
+              .filter((line) => line !== '[' && line !== ']')
+              .slice(0, 10)
 
             return lines
           }
-
-          // If all parsing fails, throw error
           throw new Error('Unable to parse API response')
         }
       } catch (error) {
@@ -283,7 +293,8 @@ export default {
     return {
       isLoading,
       error,
-      generateAIStatus
+      generateAIStatus,
+      isSarcastic
     }
   },
   data() {
@@ -324,10 +335,10 @@ export default {
         const statuses = await this.generateAIStatus(
           this.selectedFeeling,
           this.selectedMeeting,
-          this.selectedTheme
+          this.selectedTheme,
+          this.isSarcastic
         )
 
-        // Ensure we have valid statuses
         if (Array.isArray(statuses) && statuses.length > 0) {
           this.statusRecommendations = statuses
         } else {
@@ -344,7 +355,6 @@ export default {
     async copyStatus(status) {
       try {
         await navigator.clipboard.writeText(status)
-        // Optional: Add toast notification here
       } catch (err) {
         console.error('Failed to copy status:', err)
       }
