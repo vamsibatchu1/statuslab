@@ -229,7 +229,7 @@ export default {
               {
                 role: 'system',
                 content: sarcastic
-                  ? "You are a witty and sarcastic status message generator specializing in creating themed statuses for Slack. Your responses should be clever, ironic, and subtly sarcastic while remaining workplace-appropriate. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
+                  ? "You are a witty & sarcastic status message generator specializing in creating themed statuses for Slack. Your responses should be clever, ironic, and subtly sarcastic while remaining workplace-appropriate. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
                   : "You are a creative status message generator specialized in creating themed statuses for Slack. Generate exactly 10 unique, engaging status messages that match the user's current feeling, meeting type, and requested theme style. Return the response as a simple array of strings."
               },
               {
